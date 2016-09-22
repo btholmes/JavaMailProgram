@@ -5,14 +5,15 @@ import java.io.FileNotFoundException;
 import java.util.Properties;
 import java.util.Scanner;
 
-import javax.mail.Multipart;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
+import javax.mail.AuthenticationFailedException;
 import javax.mail.Authenticator;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Store;
@@ -23,83 +24,110 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.SearchTerm;
 
-class doThis {
+class SendMail implements Runnable {
 	static Session session; 
+	String m_to; 
+	String m_subject; 
+	String m_text; 
+	String d_host; 
+	String d_port; 
+	String imapHost; 
+	String imapPort; 
+	static String d_email; 
+	static String d_uname; 
+	static String d_password; 
+	static String attachment; 
+	static boolean attached = true; 
+	static boolean authenticated; 
+
 	
-	public static void main(String[] args) throws MessagingException, FileNotFoundException{
+	public SendMail(String destination, String msg, String subject, String item, String user, String pass){
 
 		//String d_email = "email@domain.com";
-		String d_email = "btholmes@iastate.edu";
+		d_email = user;
 		//String d_uname = "email@domain.com";
-		String d_uname = "btholmes@iastate.edu";
+		d_uname = user;
 		//String d_password = "****";
-		String d_password = "Cloudatlas743";	
-		String d_host = "smtp.gmail.com";
-		String d_port  = "465"; //465,587
+		d_password = pass;	
+		d_host = "smtp.gmail.com";
+		d_port  = "465"; //465,587
 		
 		//This is the person who will receive the email
-		String m_to = "btholmes@iastate.edu";
-		String m_subject = "Java Mail";
+		m_to = destination; 
+		m_subject = subject;
 		
-//		String m_text = createText(); 
-		String m_text = "Hey"; 
-		
-		connect(d_email, d_host, d_port); 
-		MimeMessage msg = createMail(m_text, m_subject, d_email, m_to); 
-		addAttachment(msg); 
-		sendMail(d_host, d_uname, d_password, msg); 
-		
-//		connect(d_email, d_host, d_port); 
+		m_text = msg; 
+				
+		attachment = item.trim(); 
+		if(attachment.length() <= 0){
+			attached = false; 
+		}
 
-		String imapHost = "imap.gmail.com"; 
-		String imapPort = "993"; 
+		imapHost = "imap.gmail.com"; 
+		imapPort = "993"; 
 //		searchSubject(imapHost, imapPort, "email@domain.com", "****", "SearchKeyword"); 
+
+	}
+
+	
+	public SendMail(String user, String pass) throws MessagingException{
+		String host = "imap.gmail.com"; 
+		connect(user, host, "465"); 
+		authenticated = checkConnection(host, user, pass); 
+	}
+	
+	public static boolean checkConnection(String host, String username, String password) throws MessagingException{
+			Properties props = System.getProperties();
+		    props.setProperty("mail.store.protocol", "imaps");
+		try {
+	         Session session = Session.getDefaultInstance(props, null);
+	         Store store = session.getStore("imaps");
+	         store.connect("imap.gmail.com", username, password);
+	    } catch (AuthenticationFailedException e) {
+	        return false; 
+	    }
+	    return true; 
+	}
+	
+	public static void connect(String email, String host, String port){
+		try{
+			Properties props = new Properties();
+			props.put("mail.smtp.user", email);
+			props.put("mail.smtp.host", host);
+			props.put("mail.smtp.port", port);
+			props.put("mail.smtp.starttls.enable","true");
+			props.put("mail.smtp.debug", "true");
+			props.put("mail.smtp.auth", "true");
+			props.put("mail.smtp.socketFactory.port", port);
+			props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+			props.put("mail.smtp.socketFactory.fallback", "false");
+			
+			auth auth = new auth(d_email, d_password);
+			session = Session.getInstance(props, auth);
+			session.setDebug(true);
+		}
+		catch(Exception e){
+			System.out.println("Exception caught in connect");
+		}
 
 	}
 	
 	private static void addAttachment(MimeMessage msg) throws MessagingException {
 //		 TODO Auto-generated method stub
-      MimeBodyPart messageBodyPart = new MimeBodyPart();
-      String filename = "/Users/btholmes/Downloads/HSBexcel.xlsx";
-      DataSource source = new FileDataSource(filename);
-      messageBodyPart.setDataHandler(new DataHandler(source));
-      messageBodyPart.setFileName(filename);
-      Multipart multipart = new MimeMultipart();
-      multipart.addBodyPart(messageBodyPart);
-      msg.setContent(multipart);
-	}
-
-	private static String createText() throws FileNotFoundException {
-		// TODO Auto-generated method stub
-		String result = "Hey, \n \n" + "Here are the house attendance results:\n\n"; 
-		File text = new File("/Users/btholmes/Documents/workspace/Honors/SendMe.txt"); 
-		Scanner in = new Scanner(text); 
-		while(in.hasNextLine()){
-			result += in.nextLine() + "\n"; 
-			
+		if(attached){
+		      MimeBodyPart messageBodyPart = new MimeBodyPart();
+//		      String filename = "/Users/btholmes/Downloads/HSBexcel.xlsx";
+		      String filename = attachment; 
+		      DataSource source = new FileDataSource(filename);
+		      messageBodyPart.setDataHandler(new DataHandler(source));
+		      messageBodyPart.setFileName(filename);
+		      Multipart multipart = new MimeMultipart();
+		      multipart.addBodyPart(messageBodyPart);
+		      msg.setContent(multipart);
 		}
-		
-		result += "\n Best!\n"; 
-		return result;
+
 	}
 
-	public static void connect(String email, String host, String port){
-		Properties props = new Properties();
-		props.put("mail.smtp.user", email);
-		props.put("mail.smtp.host", host);
-		props.put("mail.smtp.port", port);
-		props.put("mail.smtp.starttls.enable","true");
-		props.put("mail.smtp.debug", "true");
-		props.put("mail.smtp.auth", "true");
-		props.put("mail.smtp.socketFactory.port", port);
-		props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-		props.put("mail.smtp.socketFactory.fallback", "false");
-		
-		auth auth = new auth();
-		session = Session.getInstance(props, auth);
-		session.setDebug(true);
-		
-	}
 	
 	public static MimeMessage createMail(String text, String subject, String email, String destination) throws MessagingException{
 		MimeMessage msg = new MimeMessage(session);
@@ -112,11 +140,17 @@ class doThis {
 	}
 	
 	public static void sendMail(String host, String username, String password, MimeMessage msg) throws MessagingException{
-		Transport transport = session.getTransport("smtps");
-		transport.connect(host, 465, username, password);
-		transport.sendMessage(msg, msg.getAllRecipients());
-		transport.close();
+		try{
+			Transport transport = session.getTransport("smtps");
+			transport.connect(host, 465, username, password);
+			transport.sendMessage(msg, msg.getAllRecipients());
+			transport.close();
+		}
+		catch(AuthenticationFailedException e){
+			System.out.println("Failed to Authenticate that user and pass");
+		}
 	}
+
 	
 	public static void searchSubject(String host, String port, String username, String  password, String keyword) {
 		 // server setting
@@ -179,14 +213,37 @@ class doThis {
 	            ex.printStackTrace();
 	        }
 	    }
+
+	@Override
+	public void run(){
+		// TODO Auto-generated method stub	
+		
+		connect(d_email, d_host, d_port); 		
+		MimeMessage emailThis;
+		try {
+			emailThis = createMail(m_text, m_subject, d_email, m_to);
+			addAttachment(emailThis);
+			sendMail(d_host, d_uname, d_password, emailThis);
+		} catch (MessagingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		
+	}
 }
-	
+
 class auth extends Authenticator
 {
+	String userName; 
+	String passWord; 
+	public auth(String user, String pass){
+		userName = user; 
+		passWord = pass; 
+	}
     public PasswordAuthentication getPasswordAuthentication()
     {
 //        return new PasswordAuthentication("email@domain.com", "*****");
-        return new PasswordAuthentication("btholmes@iastate.edu", "Cloudatlas743");
+        return new PasswordAuthentication(userName, passWord);
 
     }
 }

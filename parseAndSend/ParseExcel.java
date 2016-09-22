@@ -42,7 +42,8 @@ public class ParseExcel {
 		    }
 		    write.flush();
 	
-		    doThis item = new doThis(); 
+		    Thread send = new Thread(new SendMail()); 
+		    send.start();
 		    
 	}
 	
