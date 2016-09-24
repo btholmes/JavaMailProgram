@@ -30,15 +30,18 @@ public class SignInWindow extends Application {
 	    @Override
 	    public void start(Stage primaryStage) {
 	        primaryStage.setTitle("Sign In");
+	        
 	        GridPane grid = new GridPane();
+//	        grid.setStyle("-fx-background-color: linear-gradient(#ff7f50, #6a5acd);");
 	        grid.setAlignment(Pos.CENTER);
 	        grid.setHgap(10);
-	        grid.setVgap(10);
+	        grid.setVgap(15);
 	        grid.setPadding(new Insets(25, 25, 25, 25));
 
-	        Text scenetitle = new Text("Please Sign in");
+	        Text scenetitle = new Text("Sign in");
 	        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-	        grid.add(scenetitle, 0, 0, 2, 1);
+	        scenetitle.setFill(Color.LIGHTSKYBLUE);
+	        grid.add(scenetitle, 0, 0);
 
 	        Label user = new Label("Email: ");
 	        grid.add(user, 0, 1);
@@ -47,19 +50,22 @@ public class SignInWindow extends Application {
 	        email.setPromptText("hello@iastate.edu"); 
 	        grid.add(email, 1, 1);
 
-	        Label pwd = new Label("Password: ");
+	        Label pwd = new Label("Pass: ");
 	        grid.add(pwd, 0, 2);
 
 	        PasswordField pass = new PasswordField();
 	        pass.setPrefHeight(20); 
-	        grid.add(pass, 1, 2);
+	        grid.add(pass, 1, 2, 2, 1);
 	        
-
+	        
+	        
 	        Button btn = new Button("Sign In");
 	        HBox hbBtn = new HBox(10);
+	        btn.setTextFill(Color.BLACK);
 	        hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
 	        hbBtn.getChildren().add(btn);
 	        grid.add(hbBtn, 1, 5);
+	        
 
 	        final Text actiontarget = new Text();
 	        grid.add(actiontarget, 1, 6);
@@ -74,30 +80,30 @@ public class SignInWindow extends Application {
 						auth = new SendMail(email.getText(), pass.getText());
 					} catch (MessagingException e1) {
 					} 
-					if(auth.authenticated == true){
-	            	//This was a workaround to launch another javaFX window, at first I thought
-	            	//I could just implement Runnable in SendWindow() but that didn't work, I was getting
-	            	//an error that said you can only call launch 1x within an application
-	            	//This was the only way to start SendWindow() that I found. 					
+					if(auth.authenticated == true){				
 					primaryStage.hide(); 
 	            	actiontarget.setFill(Color.FIREBRICK);
 	                actiontarget.setText("Signed In");	
+	                
 		            	Platform.runLater(new Runnable() {
 		            	       public void run() {             
-		        	                new SendWindow(email.getText(), pass.getText()).start(new Stage());
+//		        	                new ChooseWindow().start(new Stage());
+		        	                	new SendWindow(email.getText(), pass.getText()).start(new Stage());            	    
 		            	       }
-		            	}); 
+		            	});
+		        	                
 					}else{
 						//False authentication, so ask user to sign in again
+		            	actiontarget.setFill(Color.FIREBRICK);
 						actiontarget.setText("Wrong user or password");	
 					}
 	                
 	            }
 	        });
-
-	        Scene scene = new Scene(grid, 300, 275);
+      
+	        Scene scene = new Scene(grid, 350, 275);
 	        primaryStage.setScene(scene);
-	        scene.getStylesheets().add(SendWindow.class.getResource("Login.css").toExternalForm()); 
+	        scene.getStylesheets().add(SignInWindow.class.getResource("Login.css").toExternalForm()); 
 	        primaryStage.show();
 	    }
 	

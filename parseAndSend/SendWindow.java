@@ -15,9 +15,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+import javafx.scene.control.TextArea; 
 
-public class SendWindow extends Application implements Runnable{
+public class SendWindow extends Application {
 //
 //    public static void main(String[] args) {
 //        launch(args);
@@ -35,13 +37,16 @@ public class SendWindow extends Application implements Runnable{
     	
         primaryStage.setTitle("Send Email");
         GridPane grid = new GridPane();
+        grid.setStyle("-fx-background-color: linear-gradient(#6a5acd, #ffffff);");
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
 
         Text scenetitle = new Text("Fill in the Form");
-        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 50));
+        scenetitle.setFill(Color.WHITE);
+        scenetitle.setTextAlignment(TextAlignment.CENTER);
         grid.add(scenetitle, 0, 0, 2, 1);
 
         Label destination = new Label("Send To: ");
@@ -61,8 +66,8 @@ public class SendWindow extends Application implements Runnable{
         Label msg = new Label("Message: ");
         grid.add(msg, 0, 3);
 
-        TextField msgBox = new TextField();
-        msgBox.setPrefHeight(20); 
+        TextArea msgBox = new TextArea();
+//        msgBox.setPrefHeight(20); 
         grid.add(msgBox, 1, 3);
         
         Label attach = new Label("Attachment: ");
@@ -84,23 +89,41 @@ public class SendWindow extends Application implements Runnable{
         btn.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
-            public void handle(ActionEvent e) {
-            	Thread send = new Thread(new SendMail(userTextField.getText(), msgBox.getText(), subject.getText(), item.getText(), userName, passWord)); 
-                send.start(); 
-            	actiontarget.setFill(Color.FIREBRICK);
-                actiontarget.setText("Message Sent");
+            public void handle(ActionEvent e) {            	
+            	SendMail checkDest = new SendMail(userTextField.getText(), msgBox.getText(), subject.getText(), item.getText(), userName, passWord); 
+           
+            	if(checkDest.recipient == true && ((checkDest.attached  && checkDest.fileExists) || (!checkDest.attached))){
+//                	Thread send = new Thread(new SendMail(userTextField.getText(), msgBox.getText(), subject.getText(), item.getText(), userName, passWord)); 
+//                    send.start(); 
+                    actiontarget.setFill(Color.BLACK);
+                    actiontarget.setStyle("-fx-font: 20 arial");
+                    actiontarget.setText("Message Sent");
+            	}else{
+            		if(checkDest.attached  && !checkDest.fileExists){
+            			actiontarget.setFill(Color.FIREBRICK);
+            			   actiontarget.setStyle("-fx-font: 20 arial");
+                        actiontarget.setText("Attachment Doesn't Exist");
+            		}
+            		else if(((checkDest.attached  && checkDest.fileExists) || !checkDest.attached) && !checkDest.recipient) {
+            			actiontarget.setFill(Color.FIREBRICK);
+            			   actiontarget.setStyle("-fx-font: 20 arial");
+            			actiontarget.setText("Recipient Doesn't Exist");
+            		}
+            		else if((checkDest.attached && !checkDest.fileExists)  && !checkDest.recipient){
+            			actiontarget.setFill(Color.FIREBRICK);
+            			   actiontarget.setStyle("-fx-font: 20 arial");
+            			actiontarget.setText("Recipient and Attachment Don't Exist");
+            		}
+            	}
+            	
+            	
             }
         });
 
-        Scene scene = new Scene(grid, 300, 275);
+        Scene scene = new Scene(grid, 700, 700);
         primaryStage.setScene(scene);
         scene.getStylesheets().add(SendWindow.class.getResource("Login.css").toExternalForm()); 
         primaryStage.show();
     }
 
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		launch(); 
-	}
 }

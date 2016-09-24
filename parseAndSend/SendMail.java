@@ -1,9 +1,7 @@
 package parseAndSend;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Properties;
-import java.util.Scanner;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -22,9 +20,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-import javax.mail.search.SearchTerm;
 
-class SendMail implements Runnable {
+public class SendMail implements Runnable {
 	static Session session; 
 	String m_to; 
 	String m_subject; 
@@ -39,6 +36,8 @@ class SendMail implements Runnable {
 	static String attachment; 
 	static boolean attached = true; 
 	static boolean authenticated; 
+	static boolean recipient; 
+	static boolean fileExists; 
 
 	
 	public SendMail(String destination, String msg, String subject, String item, String user, String pass){
@@ -65,16 +64,33 @@ class SendMail implements Runnable {
 
 		imapHost = "imap.gmail.com"; 
 		imapPort = "993"; 
+		recipient = checkDestination(msg, subject); 
+
+		
 //		searchSubject(imapHost, imapPort, "email@domain.com", "****", "SearchKeyword"); 
 
 	}
 
+
+	public boolean checkDestination(String message, String subject){
+		connect(d_email, d_host, d_port); 		
+		MimeMessage emailThis;
+		try {
+			emailThis = createMail(message, subject, d_email, m_to);
+			addAttachment(emailThis);
+			sendMail(d_host, d_uname, d_password, emailThis);
+		} catch (MessagingException e) {
+			return false; 
+		} 		
+		return true; 
+	}
 	
 	public SendMail(String user, String pass) throws MessagingException{
 		String host = "imap.gmail.com"; 
 		connect(user, host, "465"); 
 		authenticated = checkConnection(host, user, pass); 
 	}
+	
 	
 	public static boolean checkConnection(String host, String username, String password) throws MessagingException{
 			Properties props = System.getProperties();
@@ -117,17 +133,27 @@ class SendMail implements Runnable {
 		if(attached){
 		      MimeBodyPart messageBodyPart = new MimeBodyPart();
 //		      String filename = "/Users/btholmes/Downloads/HSBexcel.xlsx";
-		      String filename = attachment; 
-		      DataSource source = new FileDataSource(filename);
-		      messageBodyPart.setDataHandler(new DataHandler(source));
-		      messageBodyPart.setFileName(filename);
-		      Multipart multipart = new MimeMultipart();
-		      multipart.addBodyPart(messageBodyPart);
-		      msg.setContent(multipart);
+//		      String filename = attachment;
+		      fileExists = checkFile(attachment); 
+		      if(fileExists){ 
+			      DataSource source = new FileDataSource(attachment);
+			      messageBodyPart.setDataHandler(new DataHandler(source));
+			      messageBodyPart.setFileName(attachment);
+			      Multipart multipart = new MimeMultipart();
+			      multipart.addBodyPart(messageBodyPart);
+			      msg.setContent(multipart);
+		      }
 		}
 
 	}
 
+	
+	private static boolean checkFile(String path) {
+		// TODO Auto-generated method stub
+			File file = new File(path); 
+			System.out.println("File is " + file.exists());
+		return file.exists();
+	}
 	
 	public static MimeMessage createMail(String text, String subject, String email, String destination) throws MessagingException{
 		MimeMessage msg = new MimeMessage(session);
@@ -175,30 +201,6 @@ class SendMail implements Runnable {
 	            // opens the inbox folder
 	            Folder folderInbox = store.getFolder("INBOX");
 	            folderInbox.open(Folder.READ_ONLY);
-	 
-	            // creates a search criterion
-	            SearchTerm searchCondition = new SearchTerm() {
-	                @Override
-	                public boolean match(Message message) {
-	                    try {
-	                        if (message.getSubject() != null && message.getSubject().contains(keyword)) {
-	                        	return true;
-	                        }
-	                    } catch (MessagingException ex) {
-	                        ex.printStackTrace();
-	                    }
-	                    return false;
-	                }
-	            };
-	 
-	            // performs search through the folder
-	            Message[] foundMessages = folderInbox.search(searchCondition);
-	 
-	            for (int i = 0; i < foundMessages.length; i++) {
-	                Message message = foundMessages[i];
-	                String subject = message.getSubject();
-	                System.out.println("Found message #" + i + ": " + subject);
-	            }
 	 
 	            // disconnect
 	            folderInbox.close(false);
