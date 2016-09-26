@@ -63,12 +63,12 @@ public class SendWindow extends Application {
         subject.setPrefHeight(20); 
         grid.add(subject, 1, 2);
         
-        Label msg = new Label("Message: ");
-        grid.add(msg, 0, 3);
+//        Label msg = new Label("Message: ");
+//        grid.add(msg, 0, 3);
 
-        TextArea msgBox = new TextArea();
+//        TextArea msgBox = new TextArea();
 //        msgBox.setPrefHeight(20); 
-        grid.add(msgBox, 1, 3);
+//        grid.add(msgBox, 1, 3);
         
         Label attach = new Label("Attachment: ");
         grid.add(attach, 0, 4);
