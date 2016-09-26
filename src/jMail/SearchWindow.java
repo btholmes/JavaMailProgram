@@ -72,7 +72,7 @@ public class SearchWindow extends Application {
 
             	Thread thread;
 				try {
-					thread = new Thread(new SearchMail("bholmes6831@gmail.com", "jJazz743", sbj.getText()));
+					thread = new Thread(new SearchMail("bholmes6831@gmail.com", "jJazz743", subject.getText()));
 					thread.start();
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
