@@ -44,7 +44,6 @@ class SearchMail implements Runnable {
 		imapHost = "imap.gmail.com"; 
 		imapPort = "993"; 
 		keyword = key; 
-		searchSubject("imap.gmail.com", "993", d_uname, d_password, keyword );
 	}
 	
 	
@@ -134,7 +133,6 @@ class SearchMail implements Runnable {
 	public void run() {
 		// TODO Auto-generated method stub	
 		try {
-			System.out.println("in run");
 			searchSubject("imap.gmail.com", "993", d_uname, d_password, keyword ); 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
