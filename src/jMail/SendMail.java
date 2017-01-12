@@ -46,16 +46,16 @@ public class SendMail implements Runnable {
 	public SendMail() throws FileNotFoundException{
 		
 		//String d_email = "email@domain.com";
-				d_email = "btholmes@iastate.edu";
+				d_email = "name@domain.edu";
 		//String d_uname = "email@domain.com";
-				d_uname = "btholmes@iastate.edu";
+				d_uname = "name@domain.edu";
 		//String d_password = "****";
-				d_password = "Cloudatlas743";	
+				d_password = "password";	
 				d_host = "smtp.gmail.com";
 				d_port  = "465"; //465,587
 				
 		//This is the person who will receive the email
-				m_to = "klkost21@iastate.edu"; 
+				m_to = "receiver@domain.edu"; 
 				m_subject = "House Attendance";
 				
 				m_text = createText(); 
